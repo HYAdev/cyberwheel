@@ -6,12 +6,14 @@ device: cpu # Which device to train on
 async_env: false # Whether to run the environments in parallel
 total_timesteps: 10000000 # Total number of steps to run throughout training
 num_saves: 10 # Number of times the model is evaluated and saved during the training run
-num_envs: 4 # Number of game environments to run at once (parallel if async_env == true)
-num_steps: 100 # Number of steps to run per episode
+num_envs: 1 # Number of game environments to run at once (parallel if async_env == true)
+num_steps: 50 # Number of steps to run per episode
 eval_episodes: 10 # Number of episodes to run in an evaluation
+headstart: 5
+after_headstart_blue_active: false
 
 # Environment Parameters
-environment: CyberwheelRL # Environment class to use
+environment: CyberwheelHS # Environment class to use
 network_config: 15-host-network.yaml # Network configuration filename in config/network
 host_config: host_defs_services.yaml # Host configuration filename in config/host_definitions
 decoy_config: decoy_hosts.yaml # Decoy configuration filename in config/detector
