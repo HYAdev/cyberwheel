@@ -189,3 +189,5 @@ action_logs/
 temp/
 
 # End of https://www.toptal.com/developers/gitignore/api/python
+cyberwheel/data/configs/environment/.DS_Store
+.gitignore

@@ -1,9 +1,12 @@
-import gymnasium as gym
-import numpy as np
+from cyberwheel.red_actions.actions.nothing import Nothing
+from cyberwheel.red_agents.red_agent_base import RedAgentResult
+import gymnasium as gym # type: ignore
+import numpy as np # type: ignore
 import importlib
+import os
 
 from typing import Iterable, Any 
-from gymnasium import spaces
+from gymnasium import spaces # type: ignore
 
 from cyberwheel.cyberwheel_envs.cyberwheel import Cyberwheel
 from cyberwheel.blue_agents import RLBlueAgent, InactiveBlueAgent
@@ -12,7 +15,7 @@ from cyberwheel.red_agents import RLRedAgent, ARTAgent, ARTCampaign
 from cyberwheel.utils import YAMLConfig, HybridSetList
 from cyberwheel.utils.set_seed import set_seed
 
-import pandas as pd
+import pandas as pd # type: ignore
 import time
 
 class CyberwheelHS(gym.Env, Cyberwheel):
@@ -38,8 +41,6 @@ class CyberwheelHS(gym.Env, Cyberwheel):
             - If not passed, it will build the network with the config file passed.
             - Default: None
         """
-        print("HX: ", args)
-
         super().__init__(args, network=network)
 
         reward_function = args.reward_function
@@ -53,6 +54,7 @@ class CyberwheelHS(gym.Env, Cyberwheel):
 
         self.evaluation = evaluation
         self.total = 0
+        self.args = args
     
     def initialize_agents(self) -> None:
         args = self.args
@@ -89,28 +91,27 @@ class CyberwheelHS(gym.Env, Cyberwheel):
         5. Return obs and related metadata
         """
 
-        print(f"Current time step: {self.current_step}")
-
-        blue_agent_result = self.blue_agent.act(action)
-
-        red_agent_result = self.red_agent.act(action)
-
-        obs_vec = self.red_agent.get_observation_space() if self.args.train_red else self.blue_agent.get_observation_space(red_agent_result)
+        if self.current_step < self.args.headstart:
+            blue_agent_result = self.blue_agent.act(action)
+            action_results = Nothing(self.red_agent.current_host, self.red_agent.current_host).sim_execute()
+            red_agent_result = RedAgentResult(action_results.action, self.red_agent.current_host, self.red_agent.current_host, False, action_results=action_results)
+            obs_vec = np.zeros(2 * (len(self.blue_agent.network.hosts) - len(self.blue_agent.network.decoys)), dtype=int)
+        else:
+            blue_agent_result = self.blue_agent.act(action)
+            red_agent_result = self.red_agent.act(action)
+            obs_vec = self.blue_agent.get_observation_space(red_agent_result)
 
         reward = self.reward_sign * self.reward_calculator.calculate_reward(
+            self.current_step < self.args.headstart,
+            self.args.after_headstart_blue_active,
             red_agent_result.action.get_name(),
             blue_agent_result.name,
             red_agent_result.success,
             blue_agent_result.success,
             red_agent_result.target_host,
             blue_id=blue_agent_result.id,
-            blue_recurring=blue_agent_result.recurring
+            blue_recurring=blue_agent_result.recurring,
         )
-
-        print(f'Red conducted {red_agent_result.action.get_name()} on {red_agent_result.target_host.name} and was {"successful" if red_agent_result.success else "not successful"}')
-        print(f'Blue conducted {blue_agent_result.name} and was {"successful" if blue_agent_result.success else "not successful"}')
-
-        time.sleep(2)
 
         self.total += reward
 

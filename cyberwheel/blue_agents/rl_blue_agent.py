@@ -74,7 +74,6 @@ class RLBlueAgent(BlueAgent):
         self.network = network
 
         self.observation = BlueObservation(2 * len(self.network.hosts), host_to_index_mapping(self.network, self.args.deterministic), args.detector_config)
-
         self.configs: Dict[str, Any] = {}
         self.action_space: ActionSpace = None
         
