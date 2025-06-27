@@ -8,7 +8,7 @@ from cyberwheel.network.host import Host
 from cyberwheel.observation.observation import Observation
 from cyberwheel.detectors.handler import DetectorHandler
 
-class BlueObservation(Observation):
+class BlueObservationAsymmetric(Observation):
     def __init__(self, shape: int, mapping: Dict[Host, int], detector_config: str) -> None:
         self.shape = shape
         self.mapping = mapping
@@ -18,6 +18,13 @@ class BlueObservation(Observation):
     def create_obs_vector(self, alerts: Iterable[Alert], headstart: bool) -> Iterable:
         # Refresh the non-history portion of the obs_vec
         obs_length = len(self.obs_vec)
+
+        if headstart:
+            for i in range(obs_length):
+                self.obs_vec[i] = 0
+            self.obs_vec[-1] = 1
+            return self.obs_vec
+
         barrier = obs_length // 2
         for i in range(barrier):
             self.obs_vec[i] = 0
@@ -28,6 +35,7 @@ class BlueObservation(Observation):
             index = self.mapping[alerted_host.name]
             self.obs_vec[index] = 1
             self.obs_vec[index + barrier] = 1
+        self.obs_vec[-1] = 0
         return self.obs_vec
 
     def reset(self) -> Iterable:

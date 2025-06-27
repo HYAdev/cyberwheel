@@ -1,2 +1,3 @@
 from cyberwheel.observation.blue_observation import BlueObservation
+from .blue_hs_observation import BlueObservationAsymmetric
 from cyberwheel.observation.red_observation import RedObservation

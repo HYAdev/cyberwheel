@@ -9,7 +9,7 @@ from typing import Iterable, Any
 from gymnasium import spaces # type: ignore
 
 from cyberwheel.cyberwheel_envs.cyberwheel import Cyberwheel
-from cyberwheel.blue_agents import RLBlueAgent, InactiveBlueAgent
+from cyberwheel.blue_agents import RLBlueAgentAsymmetric, InactiveBlueAgent
 from cyberwheel.network.network_base import Network
 from cyberwheel.red_agents import RLRedAgent, ARTAgent, ARTCampaign
 from cyberwheel.utils import YAMLConfig, HybridSetList
@@ -71,7 +71,7 @@ class CyberwheelHS(gym.Env, Cyberwheel):
             self.reward_sign = -1
         else:
             self.red_agent = ARTCampaign(self.network, args) if args.campaign else ARTAgent(self.network, args)
-            self.blue_agent = RLBlueAgent(self.network, args)
+            self.blue_agent = RLBlueAgentAsymmetric(self.network, args)
             self.rl_agent = self.blue_agent
             self.static_agent = self.red_agent
 
@@ -91,15 +91,17 @@ class CyberwheelHS(gym.Env, Cyberwheel):
         5. Return obs and related metadata
         """
 
-        if self.current_step < self.args.headstart:
+        in_headstart = self.current_step < self.args.headstart
+
+        if in_headstart:
             blue_agent_result = self.blue_agent.act(action)
             action_results = Nothing(self.red_agent.current_host, self.red_agent.current_host).sim_execute()
             red_agent_result = RedAgentResult(action_results.action, self.red_agent.current_host, self.red_agent.current_host, False, action_results=action_results)
-            obs_vec = np.zeros(2 * (len(self.blue_agent.network.hosts) - len(self.blue_agent.network.decoys)), dtype=int)
+            obs_vec = self.blue_agent.get_observation_space(red_agent_result, in_headstart)
         else:
             blue_agent_result = self.blue_agent.act(action)
             red_agent_result = self.red_agent.act(action)
-            obs_vec = self.blue_agent.get_observation_space(red_agent_result)
+            obs_vec = self.blue_agent.get_observation_space(red_agent_result, in_headstart)
 
         reward = self.reward_sign * self.reward_calculator.calculate_reward(
             self.current_step < self.args.headstart,

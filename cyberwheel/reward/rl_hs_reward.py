@@ -53,13 +53,14 @@ class RLRewardAsymmetric(Reward):
             r = 0
             r_recurring = 0
 
-        if blue_success and blue_action != "nothing":
-            if not headstart and not post_play:
-                b = self.blue_rewards[blue_action][0] * 20
-            elif not post_play and headstart:
-                b = self.blue_rewards[blue_action][0]
-            elif post_play:
-                b = self.blue_rewards[blue_action][0]
+        if blue_success:
+            if headstart:
+                b = (self.blue_rewards[blue_action][0] * -5) if (blue_action == "deploy_decoy") else self.blue_rewards[blue_action][0]
+            else:
+                if post_play:
+                    b = self.blue_rewards[blue_action][0]
+                else:
+                    b = self.blue_rewards[blue_action][0] * 10
         else:
             b = 0
         
