@@ -18,6 +18,7 @@ class RLRewardAsymmetric(Reward):
         self,
         headstart: bool,
         post_play: bool,
+        exceeded_decoy_limit: bool,
         red_action: str,
         blue_action: str,
         red_success: str,
@@ -43,6 +44,10 @@ class RLRewardAsymmetric(Reward):
         target_host_name = target_host.name
         decoy = target_host.decoy
 
+        """
+        nullify
+        """
+
         if red_success and not decoy and target_host_name in valid_targets:  # If red action succeeded on a real Host
             r = self.red_rewards[red_action][0] * -1
             r_recurring = self.red_rewards[red_action][1] * -1
@@ -54,10 +59,12 @@ class RLRewardAsymmetric(Reward):
             r_recurring = 0
 
         if blue_success:
-            if headstart:
-                b = (self.blue_rewards[blue_action][0] * -5) if (blue_action == "deploy_decoy") else self.blue_rewards[blue_action][0]
-            else:
-                if post_play:
+            if exceeded_decoy_limit:
+                b = self.blue_rewards[blue_action][0] * 3
+            elif headstart:
+                b = (self.blue_rewards[blue_action][0] * -3) if (blue_action == "deploy_decoy") else self.blue_rewards[blue_action][0] #changed
+            else: # after headstart
+                if post_play: # after headstart actions are allowed
                     b = self.blue_rewards[blue_action][0]
                 else:
                     b = self.blue_rewards[blue_action][0] * 10

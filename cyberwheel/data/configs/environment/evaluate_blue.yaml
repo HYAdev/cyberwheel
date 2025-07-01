@@ -8,8 +8,11 @@ train_blue: true
 campaign: false
 seed: 1
 deterministic: false
-headstart: 5
-after_headstart_blue_active: false
+
+headstart: 10 # CHANGE THIS
+after_headstart_blue_active: false # CHANGE THIS
+decoy_limit: 10 # CHANGE THIS
+
 
 checkpoint: agent
 download_model: false
@@ -17,9 +20,9 @@ run: # required if download_model is true
 wandb_project_name: # required if download_model is true
 wandb_entity: # required if download_model is true
 
-experiment_name: "TrainBlueAgent_AfterActive_5_2_0"
+experiment_name: "Async_TrainBlueAgent_AfterInactive_6_2_4" # CHANGE THIS
 visualize: true
-graph_name: TrainBlueAgent_AfterActive_5_2_0
+graph_name: Async_TrainBlueAgent_AfterInactive_6_2_4 # CHANGE THIS
 network_config: 15-host-network.yaml
 decoy_config: decoy_hosts.yaml
 host_config: host_defs_services.yaml

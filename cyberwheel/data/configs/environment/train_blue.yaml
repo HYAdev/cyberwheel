@@ -1,16 +1,19 @@
 # Training Parameters
-experiment_name: Async_TrainBlueAgent_AfterInactive_5_5_0 # The experiment name
+experiment_name: Async_TrainBlueAgent_AfterInactive_6_2_0 # The experiment name
 seed: 1 # The seed to use for the experiment
 deterministic: false # Whether or not the training is deterministic
 device: cpu # Which device to train on
 async_env: true # Whether to run the environments in parallel
-total_timesteps: 10000000 # Total number of steps to run throughout training
+total_timesteps: 100000000 # Total number of steps to run throughout training; changed
 num_saves: 10 # Number of times the model is evaluated and saved during the training run
-num_envs: 10 # Number of game environments to run at once (parallel if async_env == true)
+num_envs: 30 # Number of game environments to run at once (parallel if async_env == true)
 num_steps: 50 # Number of steps to run per episode
 eval_episodes: 10 # Number of episodes to run in an evaluation
-headstart: 5
+
+# Asymmetric
+headstart: 10
 after_headstart_blue_active: false
+decoy_limit: 10
 
 # Environment Parameters
 environment: CyberwheelHS # Environment class to use
@@ -43,6 +46,6 @@ max_grad_norm: 0.5 # The maximum norm for the gradient clipping
 target_kl: null # The target KL Divergence Threshold
 
 # Weights & Biases Parameters (optional)
-track: false
+track: true
 wandb_project_name: Cyberwheel # The W&B project name if tracking
 wandb_entity: oeschsec # The W&B entity if tracking
