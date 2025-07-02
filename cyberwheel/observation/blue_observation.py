@@ -15,7 +15,7 @@ class BlueObservation(Observation):
         self.obs_vec = np.zeros(shape)
         self.detector = DetectorHandler(files("cyberwheel.data.configs.detector").joinpath(detector_config))
 
-    def create_obs_vector(self, alerts: Iterable[Alert], headstart: bool) -> Iterable:
+    def create_obs_vector(self, alerts: Iterable[Alert]) -> Iterable:
         # Refresh the non-history portion of the obs_vec
         obs_length = len(self.obs_vec)
         barrier = obs_length // 2
