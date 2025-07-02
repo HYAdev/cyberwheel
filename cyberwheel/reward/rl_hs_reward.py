@@ -52,8 +52,8 @@ class RLRewardAsymmetric(Reward):
             r = self.red_rewards[red_action][0] * -1
             r_recurring = self.red_rewards[red_action][1] * -1
         elif red_success and decoy and target_host_name in valid_targets:
-            r = self.red_rewards[red_action][0] * 10
-            r_recurring = self.red_rewards[red_action][1] * 10
+            r = self.red_rewards[red_action][0] * 20 
+            r_recurring = self.red_rewards[red_action][1] * 20
         else:
             r = 0
             r_recurring = 0
@@ -67,7 +67,7 @@ class RLRewardAsymmetric(Reward):
                 if post_play: # after headstart actions are allowed
                     b = self.blue_rewards[blue_action][0]
                 else:
-                    b = self.blue_rewards[blue_action][0] * 10
+                    b = self.blue_rewards[blue_action][0] * 60
         else:
             b = 0
         

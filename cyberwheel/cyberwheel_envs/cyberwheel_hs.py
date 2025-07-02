@@ -92,7 +92,7 @@ class CyberwheelHS(gym.Env, Cyberwheel):
         """
 
         in_headstart = self.current_step < self.args.headstart
-        exceeded_decoy_limit = self.network.get_num_decoys() > self.args.decoy_limit
+        exceeded_decoy_limit = self.network.get_num_decoys() >= self.args.decoy_limit
 
         if in_headstart:
             blue_agent_result = self.blue_agent.act(action)
