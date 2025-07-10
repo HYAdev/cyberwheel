@@ -14,11 +14,73 @@ class RLRewardAsymmetric(Reward):
         self.valid_targets = valid_targets
         self.network = network
 
+    def _A(self, blue_action, headstart, post_play, exceeded_decoy_limit, blue_success):
+        if blue_success:
+            if exceeded_decoy_limit:
+                b = self.blue_rewards[blue_action][0] * 3
+            elif headstart:
+                b = (self.blue_rewards[blue_action][0] * -3) if (blue_action == "deploy_decoy") else self.blue_rewards[blue_action][0] #changed
+            else: # after headstart
+                if post_play: # after headstart actions are allowed
+                    b = self.blue_rewards[blue_action][0]
+                else:
+                    b = self.blue_rewards[blue_action][0] * 60
+        else:
+            b = 0
+
+        return b
+    def _B(self, blue_action, headstart, post_play, exceeded_decoy_limit, blue_success):
+        if blue_success:
+            if exceeded_decoy_limit:
+                b = self.blue_rewards[blue_action][0] * 3
+            elif headstart:
+                b = (self.blue_rewards[blue_action][0] * -3) if (blue_action == "deploy_decoy") else self.blue_rewards[blue_action][0] #changed
+            else: # after headstart
+                if post_play: # after headstart actions are allowed
+                    b = self.blue_rewards[blue_action][0]
+                else:
+                    b = self.blue_rewards[blue_action][0] * 60
+        else:
+            b = 0
+
+        return b
+    def _C(self, blue_action, headstart, post_play, exceeded_decoy_limit, blue_success):
+        if blue_success:
+            if exceeded_decoy_limit:
+                b = self.blue_rewards[blue_action][0] * 3
+            elif headstart:
+                b = (self.blue_rewards[blue_action][0] * -3) if (blue_action == "deploy_decoy") else self.blue_rewards[blue_action][0] #changed
+            else: # after headstart
+                if post_play: # after headstart actions are allowed
+                    b = self.blue_rewards[blue_action][0]
+                else:
+                    b = self.blue_rewards[blue_action][0] * 60
+        else:
+            b = 0
+
+        return b
+    def _D(self, blue_action, headstart, post_play, exceeded_decoy_limit, blue_success):
+        if blue_success:
+            if exceeded_decoy_limit:
+                b = self.blue_rewards[blue_action][0] * 3
+            elif headstart:
+                b = (self.blue_rewards[blue_action][0] * -3) if (blue_action == "deploy_decoy") else self.blue_rewards[blue_action][0] #changed
+            else: # after headstart
+                if post_play: # after headstart actions are allowed
+                    b = self.blue_rewards[blue_action][0]
+                else:
+                    b = self.blue_rewards[blue_action][0] * 60
+        else:
+            b = 0
+
+        return b
+
     def calculate_reward(
         self,
         headstart: bool,
         post_play: bool,
         exceeded_decoy_limit: bool,
+        objective: str,
         red_action: str,
         blue_action: str,
         red_success: str,
@@ -44,10 +106,6 @@ class RLRewardAsymmetric(Reward):
         target_host_name = target_host.name
         decoy = target_host.decoy
 
-        """
-        nullify
-        """
-
         if red_success and not decoy and target_host_name in valid_targets:  # If red action succeeded on a real Host
             r = self.red_rewards[red_action][0] * -1
             r_recurring = self.red_rewards[red_action][1] * -1
@@ -58,18 +116,15 @@ class RLRewardAsymmetric(Reward):
             r = 0
             r_recurring = 0
 
-        if blue_success:
-            if exceeded_decoy_limit:
-                b = self.blue_rewards[blue_action][0] * 3
-            elif headstart:
-                b = (self.blue_rewards[blue_action][0] * -3) if (blue_action == "deploy_decoy") else self.blue_rewards[blue_action][0] #changed
-            else: # after headstart
-                if post_play: # after headstart actions are allowed
-                    b = self.blue_rewards[blue_action][0]
-                else:
-                    b = self.blue_rewards[blue_action][0] * 60
-        else:
-            b = 0
+        action_dict = {
+            "delay": self._A,
+            "downtime": self._B,
+            "detect": self._C,
+            "general": self._D
+        }
+
+        if objective in action_dict:
+            b = action_dict[objective](blue_action, headstart, post_play, exceeded_decoy_limit, blue_success)
         
         if r_recurring != 0:
             self.add_recurring_red_action('0', red_action, decoy)

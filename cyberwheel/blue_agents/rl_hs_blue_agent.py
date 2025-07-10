@@ -73,7 +73,8 @@ class RLBlueAgentAsymmetric(BlueAgent):
         self.config = files("cyberwheel.data.configs.blue_agent").joinpath(args.blue_agent)
         self.network = network
 
-        self.observation = BlueObservationAsymmetric(2 * len(self.network.hosts) + 2, host_to_index_mapping(self.network, self.args.deterministic), args.detector_config)
+        # [ | | headstart, num_decoys, current_timestep]
+        self.observation = BlueObservationAsymmetric(2 * len(self.network.hosts) + 3, host_to_index_mapping(self.network, self.args.deterministic), args.detector_config)
         self.configs: Dict[str, Any] = {}
         self.action_space: ActionSpace = None
         
@@ -199,9 +200,9 @@ class RLBlueAgentAsymmetric(BlueAgent):
     def create_action_space(self, action_space_size: int) -> Space:
         return self.action_space.create_action_space(action_space_size)
     
-    def get_observation_space(self, red_agent_result, headstart: bool, num_decoys: int) -> Iterable:
+    def get_observation_space(self, red_agent_result, headstart: bool, num_decoys: int, current_timestep: int) -> Iterable:
         alerts = self.observation.detector.obs([red_agent_result.action_results.detector_alert])
-        return self.observation.create_obs_vector(alerts, headstart, num_decoys)
+        return self.observation.create_obs_vector(alerts, headstart, num_decoys, current_timestep)
     
     def reset(self) -> None:
         for v in self.shared_data.values():

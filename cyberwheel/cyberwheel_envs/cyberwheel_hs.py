@@ -94,20 +94,23 @@ class CyberwheelHS(gym.Env, Cyberwheel):
         in_headstart = self.current_step < self.args.headstart
         exceeded_decoy_limit = self.network.get_num_decoys() >= self.args.decoy_limit
 
+        # S -> A -> R -> S -> A
+
         if in_headstart:
             blue_agent_result = self.blue_agent.act(action)
             action_results = Nothing(self.red_agent.current_host, self.red_agent.current_host).sim_execute()
             red_agent_result = RedAgentResult(action_results.action, self.red_agent.current_host, self.red_agent.current_host, False, action_results=action_results)
-            obs_vec = self.blue_agent.get_observation_space(red_agent_result, in_headstart, self.network.get_num_decoys())
+            obs_vec = self.blue_agent.get_observation_space(red_agent_result, in_headstart, self.network.get_num_decoys(), self.current_step)
         else:
             blue_agent_result = self.blue_agent.act(action)
             red_agent_result = self.red_agent.act(action)
-            obs_vec = self.blue_agent.get_observation_space(red_agent_result, in_headstart, self.network.get_num_decoys())
+            obs_vec = self.blue_agent.get_observation_space(red_agent_result, in_headstart, self.network.get_num_decoys(), self.current_step)
 
         reward = self.reward_sign * self.reward_calculator.calculate_reward(
             in_headstart,
             self.args.after_headstart_blue_active,
             exceeded_decoy_limit,
+            self.args.objective,
             red_agent_result.action.get_name(),
             blue_agent_result.name,
             red_agent_result.success,
@@ -119,7 +122,8 @@ class CyberwheelHS(gym.Env, Cyberwheel):
 
         self.total += reward
 
-        done = self.current_step >= self.max_steps
+        # change this
+        done = red_agent_result.action.get_name() == "impact"
 
         self.current_step += 1
         info = {}

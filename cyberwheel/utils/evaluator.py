@@ -163,6 +163,9 @@ class Evaluator:
                 )
 
                 self.obs, rew, done, _, info = self.envs.step(action.cpu().numpy())
+
+                print("----")
+                print(done)
                 rew = rew[0]
                 done = done[0]
                 if "final_observation" in list(info.keys()):
