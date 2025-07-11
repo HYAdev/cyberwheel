@@ -164,8 +164,6 @@ class Evaluator:
 
                 self.obs, rew, done, _, info = self.envs.step(action.cpu().numpy())
 
-                print("----")
-                print(done)
                 rew = rew[0]
                 done = done[0]
                 if "final_observation" in list(info.keys()):
@@ -216,6 +214,9 @@ class Evaluator:
             self.obs = self.envs.reset()
             self.episode_rewards.append(self.total_reward)
             self.total_reward = 0
+
+            if done:
+                break
 
         self.actions_df = pd.DataFrame(
             {
