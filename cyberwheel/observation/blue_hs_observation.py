@@ -32,7 +32,7 @@ class BlueObservationAsymmetric(Observation):
             self.obs_vec[i] = 0
         for alert in alerts:
             alerted_host = alert.src_host
-            if alerted_host.name not in self.mapping:
+            if not alerted_host or alerted_host.name not in self.mapping:
                 continue
             index = self.mapping[alerted_host.name]
             self.obs_vec[index] = 1

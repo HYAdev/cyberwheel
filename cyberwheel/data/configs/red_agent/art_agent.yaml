@@ -29,6 +29,11 @@ actions: # All actions in this killchain (pingsweep -> impact) are required.
     reward:
       immediate: 50
       recurring: 0
+  nothing:
+    class: Nothing
+    reward:
+      immediate: 0
+      recurring: 0
 strategy: Exfiltration
 entry_host: random # optional; defaults to random user
 leader: server0 # optional; defaults to random server

@@ -16,6 +16,7 @@ from cyberwheel.red_actions.actions import (
     ARTPingSweep,
     ARTPortScan,
     ARTPrivilegeEscalation,
+    Nothing
 )
 from cyberwheel.red_agents.red_agent_base import (
     KnownSubnetInfo,
@@ -23,7 +24,7 @@ from cyberwheel.red_agents.red_agent_base import (
     AgentHistory,
     KnownHostInfo,
     RedActionResults,
-    RedAgentResult
+    RedAgentResult,
 )
 from cyberwheel.utils import HybridSetList
 
@@ -132,7 +133,7 @@ class ARTAgent(RedAgent):
         for k, v in contents['actions'].items():
             self.reward_map[k] = (v["reward"]["immediate"], v["reward"]["recurring"])
             kcp = getattr(importlib.import_module("cyberwheel.red_actions.actions"), v["class"])
-            if kcp == ARTPingSweep or kcp == ARTPortScan:
+            if kcp == ARTPingSweep or kcp == ARTPortScan or kcp == Nothing:
                 pass
             elif kcp == ARTLateralMovement:
                 self.all_kcps.append(kcp)
@@ -218,8 +219,8 @@ class ARTAgent(RedAgent):
         """
         # print(target_host.name)
         step = self.history.hosts[target_host.name].get_next_step()
-        if step > len(self.killchain) - 1:
-            step = len(self.killchain) - 1
+        if step > len(self.killchain) - 1: # Do Nothing
+            return Nothing(self.current_host, target_host).sim_execute(), Nothing
         if not self.history.hosts[target_host.name].sweeped:
             action_results = ARTPingSweep(self.current_host, target_host).sim_execute()
             if action_results.attack_success:
@@ -281,7 +282,7 @@ class ARTAgent(RedAgent):
         source_host = self.current_host
         action_results, action = self.run_action(target_host)
         success = action_results.attack_success
-        no_update = [ARTLateralMovement, ARTPingSweep, ARTPortScan]
+        no_update = [ARTLateralMovement, ARTPingSweep, ARTPortScan, Nothing]
         if success:
             if action not in no_update:
                 self.history.hosts[target_host.name].update_killchain_step()

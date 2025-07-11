@@ -99,7 +99,8 @@ class CyberwheelRL(gym.Env, Cyberwheel):
             blue_agent_result.success,
             red_agent_result.target_host,
             blue_id=blue_agent_result.id,
-            blue_recurring=blue_agent_result.recurring
+            blue_recurring=blue_agent_result.recurring,
+            
         )
 
         self.total += reward
