@@ -55,13 +55,17 @@ class Trainer:
                 obs, rew, done, _, info = env.step(action)
                 #print(f"Evaluation step took: \t\t{time.time() - eval_step_start_time}")
                 total_reward += rew
+
+                if done:
+                    info["impact_timestep"] = step
+                    print(info["impact_timestep"])
             episode_rewards.append(total_reward)
             total_reward = 0
             #episode_time = time.time() - episode_start_time
             #print(f"Evaluation ep took: \t\t{episode_time}")
 
         episodic_return = float(sum(episode_rewards)) / self.args.eval_episodes
-        return episodic_return
+        return (episodic_return, info)
     
     def run_evals(self, model, globalstep):
         """Evaluate 'model' on tasks listed in 'eval_queue' in a separate process"""
@@ -249,8 +253,6 @@ class Trainer:
             episode_time,
             self.global_step,
         )
-        
-
 
         # bootstrap value if not done
         # Calculate advantages used to optimize the policy and returns which are compared to values to optimize the critic.
@@ -397,14 +399,18 @@ class Trainer:
                 eval_return,
                 eval_step,
             ) = eval_results
+
             self.writer.add_scalar(
                 f"evaluation/{eval_network_config.split('.')[0]}_{eval_decoy_config}|{eval_reward_function}reward__{eval_red_agent}_episodic_return",
-                eval_return,
-                eval_step,
+                eval_return[0],
+                eval_step
             )
+
             self.writer.add_scalar(
                 "charts/eval_time", int(time.time() - start_eval), self.global_step
             )
+
+            # ADDITIONS
 
         # TRY NOT TO MODIFY: record rewards for plotting purposes
         self.writer.add_scalar(
