@@ -47,9 +47,9 @@ class CyberwheelHS(gym.Env, Cyberwheel):
         rfm = importlib.import_module("cyberwheel.reward")
 
         self.reward_calculator = getattr(rfm, reward_function)(
-            self.red_agent.get_reward_map(), 
-            self.blue_agent.get_reward_map(),
-            self.args.valid_targets,
+            self.red_agent, 
+            self.blue_agent,
+            self.args,
             self.network)
 
         self.evaluation = evaluation
@@ -96,6 +96,7 @@ class CyberwheelHS(gym.Env, Cyberwheel):
 
         # S -> A -> R -> S -> A
 
+
         if in_headstart:
             blue_agent_result = self.blue_agent.act(action)
             action_results = Nothing(self.red_agent.current_host, self.red_agent.current_host).sim_execute()
@@ -107,26 +108,27 @@ class CyberwheelHS(gym.Env, Cyberwheel):
             obs_vec = self.blue_agent.get_observation_space(red_agent_result, in_headstart, self.network.get_num_decoys(), self.current_step)
 
         reward = self.reward_sign * self.reward_calculator.calculate_reward(
-            in_headstart,
-            self.args.after_headstart_blue_active,
-            exceeded_decoy_limit,
-            self.args.objective,
             red_agent_result.action.get_name(),
             blue_agent_result.name,
             red_agent_result.success,
             blue_agent_result.success,
             red_agent_result.target_host,
             blue_id=blue_agent_result.id,
-            blue_recurring=blue_agent_result.recurring
+            blue_recurring=blue_agent_result.recurring,
+            headstart=in_headstart
         )
 
         self.total += reward
 
         # change this
-        done = red_agent_result.action.get_name() == "impact"
+        #done = red_agent_result.action.get_name() == "impact"
+        done = self.current_step >= self.max_steps
 
         self.current_step += 1
         info = {}
+
+        #print(f"{red_agent_result.action.get_name()} from {red_agent_result.src_host.name} to {red_agent_result.target_host.name} - {reward}")
+
         if self.evaluation:
             info = {
                 "red_action": red_agent_result.action.get_name(),

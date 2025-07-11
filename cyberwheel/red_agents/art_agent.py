@@ -16,6 +16,7 @@ from cyberwheel.red_actions.actions import (
     ARTPingSweep,
     ARTPortScan,
     ARTPrivilegeEscalation,
+    Nothing
 )
 from cyberwheel.red_agents.red_agent_base import (
     KnownSubnetInfo,
@@ -23,7 +24,7 @@ from cyberwheel.red_agents.red_agent_base import (
     AgentHistory,
     KnownHostInfo,
     RedActionResults,
-    RedAgentResult
+    RedAgentResult,
 )
 from cyberwheel.utils import HybridSetList
 
@@ -132,7 +133,7 @@ class ARTAgent(RedAgent):
         for k, v in contents['actions'].items():
             self.reward_map[k] = (v["reward"]["immediate"], v["reward"]["recurring"])
             kcp = getattr(importlib.import_module("cyberwheel.red_actions.actions"), v["class"])
-            if kcp == ARTPingSweep or kcp == ARTPortScan:
+            if kcp == ARTPingSweep or kcp == ARTPortScan or kcp == Nothing:
                 pass
             elif kcp == ARTLateralMovement:
                 self.all_kcps.append(kcp)
@@ -168,9 +169,8 @@ class ARTAgent(RedAgent):
         new_hosts = current_hosts - self.tracked_hosts.data_set
 
         removed_hosts = (self.unknowns.data_set | self.unimpacted_hosts.data_set | self.unimpacted_servers.data_set) - self.network.hosts.keys()
-        #print(removed_hosts)
         
-        if len(removed_hosts) > 0:
+        for _ in range(len(removed_hosts)):
             removed_host = removed_hosts.pop()
             self.unknowns.remove(removed_host)
             self.unimpacted_hosts.remove(removed_host)
@@ -219,11 +219,12 @@ class ARTAgent(RedAgent):
         """
         # print(target_host.name)
         step = self.history.hosts[target_host.name].get_next_step()
-        if step > len(self.killchain) - 1:
-            step = len(self.killchain) - 1
+        if step > len(self.killchain) - 1: # Do Nothing
+            return Nothing(self.current_host, target_host).sim_execute(), Nothing
         if not self.history.hosts[target_host.name].sweeped:
             action_results = ARTPingSweep(self.current_host, target_host).sim_execute()
             if action_results.attack_success:
+                self.history.subnets[target_host.subnet.name].scan()
                 for h in action_results.metadata["sweeped_hosts"]:
                     # Create Red Agent History for host if not in there
                     if h.name not in self.history.hosts:
@@ -281,7 +282,7 @@ class ARTAgent(RedAgent):
         source_host = self.current_host
         action_results, action = self.run_action(target_host)
         success = action_results.attack_success
-        no_update = [ARTLateralMovement, ARTPingSweep, ARTPortScan]
+        no_update = [ARTLateralMovement, ARTPingSweep, ARTPortScan, Nothing]
         if success:
             if action not in no_update:
                 self.history.hosts[target_host.name].update_killchain_step()

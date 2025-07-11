@@ -218,6 +218,8 @@ class Evaluator:
             self.episode_rewards.append(self.total_reward)
             self.total_reward = 0
 
+            if done:
+                break
 
         self.actions_df = pd.DataFrame(
             {

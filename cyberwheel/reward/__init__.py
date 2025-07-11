@@ -4,3 +4,4 @@ from cyberwheel.reward.reward_base import RecurringAction, RewardMap
 from cyberwheel.reward.rl_reward import RLReward
 from cyberwheel.reward.rl_split_reward import RLSplitReward
 from cyberwheel.reward.rl_hs_reward import RLRewardAsymmetric
+from cyberwheel.reward.rl_baseline_reward import RLBaselineReward

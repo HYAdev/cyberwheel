@@ -2,7 +2,7 @@ from cyberwheel.network.network_base import Host, Network
 from cyberwheel.reward.reward_base import Reward, RewardMap, RecurringAction
 from cyberwheel.utils.hybrid_set_list import HybridSetList
 
-class RLRewardAsymmetric(Reward):
+class RLBaselineReward(Reward):
     def __init__(
         self,
         red_rewards: RewardMap,
@@ -73,72 +73,17 @@ class RLRewardAsymmetric(Reward):
         target_host: Host,
         blue_id: str = -1,
         blue_recurring: int = 0,
-        headstart : bool = False
     ) -> int | float:
-        objective = self.args.objective
-        post_play = self.args.after_headstart_blue_active
         exceeded_decoy_limit = self.network.get_num_decoys() >= self.args.decoy_limit
-        
-        if self.valid_targets == "servers":
-            valid_targets = self.network.server_hosts
-        elif self.valid_targets == "users":
-            valid_targets = self.network.user_hosts
-        elif self.valid_targets == "all":
-            valid_targets = valid_targets = HybridSetList(self.network.hosts.keys())
-        elif type(self.valid_targets) is list:
-            valid_targets = HybridSetList(self.valid_targets)
-        elif type(self.valid_targets) is str:
-            valid_targets = HybridSetList(self.valid_targets)
-        else:
-            valid_targets = HybridSetList(self.network.hosts.keys())
+        objective = self.args.objective
 
         target_host_name = target_host.name
         decoy = target_host.decoy
-
-        #if red_success and not decoy and target_host_name in valid_targets:  # If red action succeeded on a real Host
-        #    r = self.red_rewards[red_action][0] * -1
-        #    r_recurring = self.red_rewards[red_action][1] * -1
-        #elif red_success and decoy and target_host_name in valid_targets:
-        #    r = self.red_rewards[red_action][0] * 20 
-        #    r_recurring = self.red_rewards[red_action][1] * 20
-        #else:
-        #    r = 0
-        #    r_recurring = 0
-        r = 0
-        r_recurring = 0
-
-        multiplier = 1
-        #if blue_success:
-        #    multiplier = 3 if exceeded_decoy_limit else -3 if headstart and blue_action == "deploy_decoy" else 60 if not post_play else 1
-        #else:
-        #    multiplier = 0
-
-        if blue_success:
-            if exceeded_decoy_limit:
-                multiplier = 3
-            elif headstart:
-                multiplier = -3 if (blue_action == "deploy_decoy") else 1 #changed
-            else: # after headstart
-                if post_play: # after headstart actions are allowed
-                    multiplier = 1
-                else:
-                    multiplier = 60
-        else:
-            multiplier = 0
+        
+        multiplier = 3 if blue_action == "deploy_decoy" and exceeded_decoy_limit else -1 if blue_action == "deploy_decoy" and blue_success else 1
 
         b = self.blue_rewards[blue_action][0] * multiplier
-        #if blue_success:
-        #    if exceeded_decoy_limit:
-        #        b = self.blue_rewards[blue_action][0] * 3
-        #    elif headstart:
-        #        b = (self.blue_rewards[blue_action][0] * -3) if (blue_action == "deploy_decoy") else self.blue_rewards[blue_action][0] #changed
-        #    else: # after headstart
-        #        if post_play: # after headstart actions are allowed
-        #            b = self.blue_rewards[blue_action][0]
-        #        else:
-        #            b = self.blue_rewards[blue_action][0] * 60
-        #else:
-        #    b = 0
+        r = 0
 
         action_dict = {
             "delay": self._DELAY,
@@ -148,11 +93,8 @@ class RLRewardAsymmetric(Reward):
         }
 
         if objective in action_dict:
-            #b = action_dict[objective](blue_action, headstart, post_play, exceeded_decoy_limit, blue_success)
-            b += action_dict[objective](decoy) # currently only working with the DELAY reward
-        
-        if r_recurring != 0:
-            self.add_recurring_red_action('0', red_action, decoy)
+            b += action_dict[objective](decoy)
+
 
         if blue_recurring == -1:
             self.remove_recurring_blue_action(blue_id)

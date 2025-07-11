@@ -6,7 +6,7 @@ from cyberwheel.red_actions.red_base import ARTAction
 from cyberwheel.network.network_base import Host
 from cyberwheel.network.service import Service
 from cyberwheel.red_actions.red_base import RedActionResults
-from cyberwheel.red_actions.actions import ARTKillChainPhase
+from cyberwheel.red_actions.actions import ARTKillChainPhase, Nothing
 from cyberwheel.red_actions.technique import Technique
 from cyberwheel.reward import RewardMap
 
@@ -177,6 +177,19 @@ class AgentHistory:
         Updates the history of the red agent at a given step with action and RedActionResults metadata
         """
         self.step += 1
+        if action == Nothing:
+            self.history.append(
+                {
+                "step": self.step,
+                "action": action.__name__,
+                "src_host": red_action_results.src_host.name,
+                "target_host": red_action_results.target_host.name,
+                "techniques": {},
+                "success": red_action_results.attack_success,
+                }
+            )
+            self.red_action_history.append(red_action_results)
+            return
         target_host_metadata = red_action_results.metadata[
             red_action_results.target_host.name
         ]

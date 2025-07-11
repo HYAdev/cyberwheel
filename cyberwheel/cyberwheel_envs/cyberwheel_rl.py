@@ -44,9 +44,9 @@ class CyberwheelRL(gym.Env, Cyberwheel):
         rfm = importlib.import_module("cyberwheel.reward")
 
         self.reward_calculator = getattr(rfm, reward_function)(
-            self.red_agent.get_reward_map(), 
-            self.blue_agent.get_reward_map(),
-            self.args.valid_targets,
+            self.red_agent, 
+            self.blue_agent,
+            self.args,
             self.network)
 
         self.evaluation = evaluation
@@ -99,7 +99,8 @@ class CyberwheelRL(gym.Env, Cyberwheel):
             blue_agent_result.success,
             red_agent_result.target_host,
             blue_id=blue_agent_result.id,
-            blue_recurring=blue_agent_result.recurring
+            blue_recurring=blue_agent_result.recurring,
+            
         )
 
         self.total += reward
@@ -108,6 +109,11 @@ class CyberwheelRL(gym.Env, Cyberwheel):
 
         self.current_step += 1
         info = {}
+
+        #print(red_agent_result.target_host.name)
+        #if blue_agent_result.success:
+        #    print(blue_agent_result.name)
+
         if self.evaluation:
             info = {
                 "red_action": red_agent_result.action.get_name(),
