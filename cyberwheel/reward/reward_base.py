@@ -15,9 +15,11 @@ class RecurringAction:
 
 
 class Reward:
-    def __init__(self, red_rewards, blue_rewards) -> None:
-        self.red_rewards = red_rewards
-        self.blue_rewards = blue_rewards
+    def __init__(self, red_agent, blue_agent) -> None:
+        self.red_agent = red_agent
+        self.blue_agent = blue_agent
+        self.red_rewards = red_agent.get_reward_map()
+        self.blue_rewards = blue_agent.get_reward_map()
 
     @abstractmethod
     def calculate_reward(self) -> int | float:

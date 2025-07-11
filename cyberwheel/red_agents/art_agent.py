@@ -168,9 +168,8 @@ class ARTAgent(RedAgent):
         new_hosts = current_hosts - self.tracked_hosts.data_set
 
         removed_hosts = (self.unknowns.data_set | self.unimpacted_hosts.data_set | self.unimpacted_servers.data_set) - self.network.hosts.keys()
-        #print(removed_hosts)
         
-        if len(removed_hosts) > 0:
+        for _ in range(len(removed_hosts)):
             removed_host = removed_hosts.pop()
             self.unknowns.remove(removed_host)
             self.unimpacted_hosts.remove(removed_host)
@@ -224,6 +223,7 @@ class ARTAgent(RedAgent):
         if not self.history.hosts[target_host.name].sweeped:
             action_results = ARTPingSweep(self.current_host, target_host).sim_execute()
             if action_results.attack_success:
+                self.history.subnets[target_host.subnet.name].scan()
                 for h in action_results.metadata["sweeped_hosts"]:
                     # Create Red Agent History for host if not in there
                     if h.name not in self.history.hosts:

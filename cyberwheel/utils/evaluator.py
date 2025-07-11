@@ -210,13 +210,12 @@ class Evaluator:
 
                 self.total_reward += rew
                 self.steps += 1
+                if done:
+                    break
             self.steps = 0
             self.obs = self.envs.reset()
             self.episode_rewards.append(self.total_reward)
             self.total_reward = 0
-
-            if done:
-                break
 
         self.actions_df = pd.DataFrame(
             {

@@ -185,6 +185,9 @@ class Trainer:
         self.next_done = torch.zeros(self.args.num_envs).to(self.device)
 
     def train(self, update):
+        self.resets = np.array(self.envs.reset()[0])
+        self.next_obs = torch.Tensor(self.resets).to(self.device)
+
         # Annealing the rate if instructed to do so.
         if self.args.anneal_lr:
             # Decreases the learning rate from args.lr to 0 over the course of training.
