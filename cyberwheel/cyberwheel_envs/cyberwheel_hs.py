@@ -92,10 +92,6 @@ class CyberwheelHS(gym.Env, Cyberwheel):
         """
 
         in_headstart = self.current_step < self.args.headstart
-        exceeded_decoy_limit = self.network.get_num_decoys() >= self.args.decoy_limit
-
-        # S -> A -> R -> S -> A
-
 
         if in_headstart:
             blue_agent_result = self.blue_agent.act(action)
@@ -115,25 +111,31 @@ class CyberwheelHS(gym.Env, Cyberwheel):
             red_agent_result.target_host,
             blue_id=blue_agent_result.id,
             blue_recurring=blue_agent_result.recurring,
-            headstart=in_headstart
+            headstart=in_headstart,
+            num_impacted_decoys=self.network.get_num_compromised_decoys()
         )
 
         self.total += reward
 
-        # change this
-        #done = red_agent_result.action.get_name() == "impact"
-        done = self.current_step >= self.max_steps
+        done = red_agent_result.action.get_name() == "impact"
+        # done = self.current_step >= self.max_steps
 
         self.current_step += 1
         info = {}
-
-        #print(f"{red_agent_result.action.get_name()} from {red_agent_result.src_host.name} to {red_agent_result.target_host.name} - {reward}")
+        
+        # to calculate pingsweeped_decoy
+        pingsweeped_decoy = False
+        if (red_agent_result.action.get_name() == "pingsweep"):
+            for host in red_agent_result.action_results.metadata.get("sweeped_hosts"):
+                if host.decoy:
+                    pingsweeped_decoy = True
 
         if self.evaluation:
             info = {
                 "red_action": red_agent_result.action.get_name(),
                 "red_action_src": red_agent_result.src_host.name,
                 "red_action_dst": red_agent_result.target_host.name,
+                "red_action_dst_is_decoy": red_agent_result.target_host.decoy,
                 "red_action_success": red_agent_result.success,
                 "blue_action": blue_agent_result.name,
                 "blue_action_id": blue_agent_result.id,
@@ -143,7 +145,10 @@ class CyberwheelHS(gym.Env, Cyberwheel):
                 "history": self.red_agent.history,
                 "commands": red_agent_result.action_results.metadata
                     .get(red_agent_result.target_host.name, {})
-                    .get("commands", [])
+                    .get("commands", []),
+                "pingsweeped_decoy": pingsweeped_decoy,
+                "impacted_decoys": self.network.get_num_compromised_decoys(),
+                "timestep_till_impact": self.current_step if done else 0
             }
 
         return obs_vec, reward, done, False, info

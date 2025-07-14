@@ -97,7 +97,6 @@ class Network:
         else:
             self.user_hosts.add(host.name)
 
-
     def add_node(self, node: Host | Subnet | Router) -> None:
         """
         Adds a Node to the Network.
@@ -150,6 +149,15 @@ class Network:
             host_obj.is_compromised = is_compromised
         except KeyError:
             return None  # return None if host not found
+
+    def get_num_compromised_decoys(self): # SULI
+        num_compromised_decoys = 0
+
+        for hn in self.decoys.keys():
+            if self.check_compromised_status(hn):
+                num_compromised_decoys += 1
+        
+        return num_compromised_decoys
 
     def check_compromised_status(self, host_name: str) -> bool | None:
         try:

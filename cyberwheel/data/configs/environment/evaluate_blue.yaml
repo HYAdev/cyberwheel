@@ -21,9 +21,9 @@ run: # required if download_model is true
 wandb_project_name: # required if download_model is true
 wandb_entity: # required if download_model is true
 
-experiment_name: "Async_Active_7_3_0" # CHANGE THIS
-visualize: false
-graph_name: Async_Active_7_3_0 # CHANGE THIS
+experiment_name: "SULI_July13_10headstart_5decoys_postplay_delay_50M_decoydetector" # CHANGE THIS
+visualize: true
+graph_name: SULI_July13_10headstart_5decoys_postplay_delay_50M_decoydetector # CHANGE THIS
 network_config: 15-host-network.yaml
 decoy_config: decoy_hosts.yaml
 host_config: host_defs_services.yaml

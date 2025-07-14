@@ -39,6 +39,11 @@ class Trainer:
         episode_rewards = []
         action_masks = torch.zeros(self.max_action_space_size, dtype=torch.bool).to(eval_device)
         total_reward = 0
+
+        total_impact_timestep = 0
+        total_first_step_of_decoy_contact = 0
+        total_impacted_decoys = 0
+
         # Standard evaluation loop to estimate mean episodic return
         for episode in range(self.args.eval_episodes):
             #episode_start_time = time.time()
@@ -57,14 +62,23 @@ class Trainer:
                 total_reward += rew
 
                 if done:
-                    info["impact_timestep"] = step
-                    print(info["impact_timestep"])
+                    break
+
+            if (info["red_action"] == "impact"):
+                total_impact_timestep += step
+            if (not total_first_step_of_decoy_contact) and (info["pingsweeped_decoy"]):
+                total_first_step_of_decoy_contact += step
+            total_impacted_decoys += info["impacted_decoys"]
+
             episode_rewards.append(total_reward)
             total_reward = 0
             #episode_time = time.time() - episode_start_time
             #print(f"Evaluation ep took: \t\t{episode_time}")
 
         episodic_return = float(sum(episode_rewards)) / self.args.eval_episodes
+        info['impact_timestep_avg'] = total_impact_timestep / self.args.eval_episodes
+        info['first_step_of_decoy_contact_avg'] = total_first_step_of_decoy_contact / self.args.eval_episodes
+        info['impacted_decoys_avg'] = total_impacted_decoys / self.args.eval_episodes
         return (episodic_return, info)
     
     def run_evals(self, model, globalstep):
@@ -414,6 +428,27 @@ class Trainer:
             )
 
             # ADDITIONS
+
+            # Average Steps Till Impact
+            self.writer.add_scalar(
+                f"evaluation/time_step_till_impact_avg",
+                eval_return[1]["impact_timestep_avg"],
+                eval_step
+            )
+
+            # Total Number of Decoys Impacted (Server Downtime)
+            self.writer.add_scalar(
+                f"evaluation/impacted_decoys_avg",
+                (eval_return[1]["impacted_decoys_avg"]),
+                eval_step
+            )
+
+            # First Step that Decoy is Detected (Decoy Detector)
+            self.writer.add_scalar(
+                f"evaluation/first_step_of_decoy_contact_avg",
+                eval_return[1]["first_step_of_decoy_contact_avg"],
+                eval_step
+            )
 
         # TRY NOT TO MODIFY: record rewards for plotting purposes
         self.writer.add_scalar(

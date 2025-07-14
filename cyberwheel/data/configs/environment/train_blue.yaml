@@ -1,10 +1,10 @@
 # Training Parameters
-experiment_name: Async_Active_7_3_0 # The experiment name
+experiment_name: Revert_SULI_July14_200hostnetwork_10headstart_5decoys_postplay_delay_50M_decoydetector # The experiment name
 seed: 1 # The seed to use for the experiment
 deterministic: false # Whether or not the training is deterministic
 device: cpu # Which device to train on
 async_env: true # Whether to run the environments in parallel
-total_timesteps: 500000000 # Total number of steps to run throughout training; changed
+total_timesteps: 100000000 # Total number of steps to run throughout training; changed
 num_saves: 10 # Number of times the model is evaluated and saved during the training run
 num_envs: 30 # Number of game environments to run at once (parallel if async_env == true)
 num_steps: 50 # Number of steps to run per episode
@@ -18,7 +18,7 @@ objective: delay # delay, downtime, detect, general
 
 # Environment Parameters
 environment: CyberwheelHS # Environment class to use
-network_config: 15-host-network.yaml # Network configuration filename in config/network
+network_config: 200-host-network.yaml # Network configuration filename in config/network
 host_config: host_defs_services.yaml # Host configuration filename in config/host_definitions
 decoy_config: decoy_hosts.yaml # Decoy configuration filename in config/detector
 red_agent: art_agent.yaml # Red agent configuration filename in config/red_agent
@@ -47,6 +47,6 @@ max_grad_norm: 0.5 # The maximum norm for the gradient clipping
 target_kl: null # The target KL Divergence Threshold
 
 # Weights & Biases Parameters (optional)
-track: true
+track: false
 wandb_project_name: Cyberwheel # The W&B project name if tracking
 wandb_entity: oeschsec # The W&B entity if tracking
