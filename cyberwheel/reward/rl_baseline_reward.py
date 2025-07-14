@@ -16,7 +16,7 @@ class RLBaselineReward(Reward):
         self.args = args
 
     def _DELAY(self, decoy): # NOTE: I implemented the delay to give a flat reward for every step that the red agent attacked a decoy.
-        return 5.0 if decoy else 0
+        return 40.0 if decoy else 0
     
     def _DOWNTIME(self, blue_action, headstart, post_play, exceeded_decoy_limit, blue_success):
         if blue_success:
@@ -79,8 +79,13 @@ class RLBaselineReward(Reward):
 
         target_host_name = target_host.name
         decoy = target_host.decoy
+
+        multiplier = 1
+
+        if blue_action == "deploy_decoy" and exceeded_decoy_limit:
+            multiplier = 3
         
-        multiplier = 3 if blue_action == "deploy_decoy" and exceeded_decoy_limit else -1 if blue_action == "deploy_decoy" and blue_success else 1
+        #multiplier = 3 if blue_action == "deploy_decoy" and exceeded_decoy_limit else -1 if blue_action == "deploy_decoy" and blue_success else 1
 
         b = self.blue_rewards[blue_action][0] * multiplier
         r = 0

@@ -23,6 +23,7 @@ class DeployDecoyHost(SubnetAction):
         self.define_configs()
         self.define_services()
         self.decoy_list : list[str] = kwargs.get("decoy_list", [])
+        self.args = kwargs.get("args", None)
 
     def execute(self, subnet: Subnet, **kwargs) ->  BlueActionReturn:
         """
@@ -31,6 +32,8 @@ class DeployDecoyHost(SubnetAction):
         When ran, this function will add a decoy Host to the
         network with a UUID name.
         """
+        if self.network.get_num_decoys() >= self.args.decoy_limit:
+            return BlueActionReturn("decoy_limit_exceeded", False, 0, target=subnet.name)
         seed = kwargs.get("seed", None)
         name = generate_id(seed=seed)
         if "server" in self.type.lower():

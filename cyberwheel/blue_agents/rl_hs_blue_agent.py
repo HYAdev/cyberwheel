@@ -74,7 +74,7 @@ class RLBlueAgentAsymmetric(BlueAgent):
         self.network = network
 
         # [ | | headstart, num_decoys, current_timestep]
-        self.observation = BlueObservationAsymmetric(2 * len(self.network.hosts) + 3, host_to_index_mapping(self.network, self.args.deterministic), args.detector_config)
+        self.observation = BlueObservationAsymmetric(2 * len(self.network.hosts), host_to_index_mapping(self.network, self.args.deterministic), args.detector_config)
         self.configs: Dict[str, Any] = {}
         self.action_space: ActionSpace = None
         
@@ -159,7 +159,7 @@ class RLBlueAgentAsymmetric(BlueAgent):
                 else:
                     action_configs[name] = self.configs[config]
 
-            action_kwargs = {}
+            action_kwargs = {"args": self.args}
             for sd in action_info.shared_data:
                 action_kwargs[sd] = self.shared_data[sd]
             action = action_class(self.network, action_configs, **action_kwargs)
@@ -200,9 +200,9 @@ class RLBlueAgentAsymmetric(BlueAgent):
     def create_action_space(self, action_space_size: int) -> Space:
         return self.action_space.create_action_space(action_space_size)
     
-    def get_observation_space(self, red_agent_result, headstart: bool, num_decoys: int, current_timestep: int) -> Iterable:
+    def get_observation_space(self, red_agent_result, headstart: bool) -> Iterable:
         alerts = self.observation.detector.obs([red_agent_result.action_results.detector_alert])
-        return self.observation.create_obs_vector(alerts, headstart, num_decoys, current_timestep)
+        return self.observation.create_obs_vector(alerts, headstart, self.network.get_num_decoys())
     
     def reset(self) -> None:
         for v in self.shared_data.values():

@@ -6,7 +6,7 @@ from cyberwheel.network.subnet import Subnet
 
 
 class RemoveDecoyHost(SubnetAction):
-    def __init__(self, network: Network, configs: Dict[str, any]) -> None:
+    def __init__(self, network: Network, configs: Dict[str, any], **kwargs) -> None:
         super().__init__(network, configs)
 
     def execute(self, subnet: Subnet, **kwargs) -> int:

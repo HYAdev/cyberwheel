@@ -159,6 +159,7 @@ class RLBlueAgent(BlueAgent):
                     action_configs[name] = self.configs[config]
 
             action_kwargs = {}
+            action_kwargs = {"args": self.args}
             for sd in action_info.shared_data:
                 action_kwargs[sd] = self.shared_data[sd]
             action = action_class(self.network, action_configs, **action_kwargs)
@@ -201,7 +202,7 @@ class RLBlueAgent(BlueAgent):
     
     def get_observation_space(self, red_agent_result) -> Iterable:
         alerts = self.observation.detector.obs([red_agent_result.action_results.detector_alert])
-        return self.observation.create_obs_vector(alerts)
+        return self.observation.create_obs_vector(alerts, self.network.get_num_decoys())
     
     def reset(self) -> None:
         for v in self.shared_data.values():

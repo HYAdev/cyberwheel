@@ -71,7 +71,11 @@ class CyberwheelRL(gym.Env, Cyberwheel):
             self.rl_agent = self.blue_agent
             self.static_agent = self.red_agent
 
-            self.observation_space = spaces.MultiBinary(self.blue_agent.observation.shape)
+            self.observation_space = spaces.Box(
+                low  = np.full(self.blue_agent.observation.shape, -1, dtype=np.int32),
+                high = np.full(self.blue_agent.observation.shape, args.decoy_limit + 2, dtype=np.int32),
+                dtype=np.int32
+            )
 
             self.max_action_space_size = len(self.network.subnets) * 2
             self.action_space = self.blue_agent.create_action_space(self.max_action_space_size)
@@ -114,11 +118,23 @@ class CyberwheelRL(gym.Env, Cyberwheel):
         #if blue_agent_result.success:
         #    print(blue_agent_result.name)
 
+        # to calculate pingsweeped_decoy
+
+
         if self.evaluation:
+            pingsweeped_decoy = False
+            if (red_agent_result.action.get_name() == "pingsweep"):
+                for host in red_agent_result.action_results.metadata.get("sweeped_hosts"):
+                    if host.decoy:
+                        pingsweeped_decoy = True
+            
+            decoy_attacked = red_agent_result.target_host.decoy
+            
             info = {
                 "red_action": red_agent_result.action.get_name(),
                 "red_action_src": red_agent_result.src_host.name,
                 "red_action_dst": red_agent_result.target_host.name,
+                "red_action_dst_is_decoy": red_agent_result.target_host.decoy,
                 "red_action_success": red_agent_result.success,
                 "blue_action": blue_agent_result.name,
                 "blue_action_id": blue_agent_result.id,
@@ -128,7 +144,11 @@ class CyberwheelRL(gym.Env, Cyberwheel):
                 "history": self.red_agent.history,
                 "commands": red_agent_result.action_results.metadata
                     .get(red_agent_result.target_host.name, {})
-                    .get("commands", [])
+                    .get("commands", []),
+                "pingsweeped_decoy": pingsweeped_decoy,
+                "decoy_attacked": decoy_attacked,
+                "impacted_decoys": self.network.get_num_compromised_decoys(),
+                "timestep_till_impact": self.current_step if done else 0
             }
 
         return obs_vec, reward, done, False, info

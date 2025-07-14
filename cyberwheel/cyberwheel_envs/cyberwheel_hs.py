@@ -75,7 +75,12 @@ class CyberwheelHS(gym.Env, Cyberwheel):
             self.rl_agent = self.blue_agent
             self.static_agent = self.red_agent
 
-            self.observation_space = spaces.MultiBinary(self.blue_agent.observation.shape)
+            #self.observation_space = spaces.MultiBinary(self.blue_agent.observation.shape)
+            self.observation_space = spaces.Box(
+                low  = np.full(self.blue_agent.observation.shape, -1, dtype=np.int32),
+                high = np.full(self.blue_agent.observation.shape, args.decoy_limit + 2, dtype=np.int32),
+                dtype=np.int32
+            )
 
             self.max_action_space_size = len(self.network.subnets) * 2
             self.action_space = self.blue_agent.create_action_space(self.max_action_space_size)
@@ -93,15 +98,15 @@ class CyberwheelHS(gym.Env, Cyberwheel):
 
         in_headstart = self.current_step < self.args.headstart
 
+        blue_agent_result = self.blue_agent.act(action)
+        
+
         if in_headstart:
-            blue_agent_result = self.blue_agent.act(action)
             action_results = Nothing(self.red_agent.current_host, self.red_agent.current_host).sim_execute()
             red_agent_result = RedAgentResult(action_results.action, self.red_agent.current_host, self.red_agent.current_host, False, action_results=action_results)
-            obs_vec = self.blue_agent.get_observation_space(red_agent_result, in_headstart, self.network.get_num_decoys(), self.current_step)
         else:
-            blue_agent_result = self.blue_agent.act(action)
             red_agent_result = self.red_agent.act(action)
-            obs_vec = self.blue_agent.get_observation_space(red_agent_result, in_headstart, self.network.get_num_decoys(), self.current_step)
+        obs_vec = self.blue_agent.get_observation_space(red_agent_result, in_headstart)
 
         reward = self.reward_sign * self.reward_calculator.calculate_reward(
             red_agent_result.action.get_name(),
@@ -114,6 +119,8 @@ class CyberwheelHS(gym.Env, Cyberwheel):
             headstart=in_headstart,
             num_impacted_decoys=self.network.get_num_compromised_decoys()
         )
+
+        #print(reward)
 
         self.total += reward
 
@@ -129,6 +136,8 @@ class CyberwheelHS(gym.Env, Cyberwheel):
             for host in red_agent_result.action_results.metadata.get("sweeped_hosts"):
                 if host.decoy:
                     pingsweeped_decoy = True
+        
+        decoy_attacked = red_agent_result.target_host.decoy
 
         if self.evaluation:
             info = {
@@ -147,6 +156,7 @@ class CyberwheelHS(gym.Env, Cyberwheel):
                     .get(red_agent_result.target_host.name, {})
                     .get("commands", []),
                 "pingsweeped_decoy": pingsweeped_decoy,
+                "decoy_attacked": decoy_attacked,
                 "impacted_decoys": self.network.get_num_compromised_decoys(),
                 "timestep_till_impact": self.current_step if done else 0
             }

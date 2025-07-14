@@ -43,6 +43,7 @@ class Trainer:
         total_impact_timestep = 0
         total_first_step_of_decoy_contact = 0
         total_impacted_decoys = 0
+        total_steps_delayed = 0
 
         # Standard evaluation loop to estimate mean episodic return
         for episode in range(self.args.eval_episodes):
@@ -61,24 +62,25 @@ class Trainer:
                 #print(f"Evaluation step took: \t\t{time.time() - eval_step_start_time}")
                 total_reward += rew
 
+                if info["decoy_attacked"]:
+                    total_steps_delayed += 1
+                if (info["red_action"] == "impact"):
+                    total_impact_timestep += step
+                if (not total_first_step_of_decoy_contact) and (info["pingsweeped_decoy"]):
+                    total_first_step_of_decoy_contact += step
+
                 if done:
                     break
 
-            if (info["red_action"] == "impact"):
-                total_impact_timestep += step
-            if (not total_first_step_of_decoy_contact) and (info["pingsweeped_decoy"]):
-                total_first_step_of_decoy_contact += step
             total_impacted_decoys += info["impacted_decoys"]
-
             episode_rewards.append(total_reward)
             total_reward = 0
-            #episode_time = time.time() - episode_start_time
-            #print(f"Evaluation ep took: \t\t{episode_time}")
 
         episodic_return = float(sum(episode_rewards)) / self.args.eval_episodes
         info['impact_timestep_avg'] = total_impact_timestep / self.args.eval_episodes
         info['first_step_of_decoy_contact_avg'] = total_first_step_of_decoy_contact / self.args.eval_episodes
         info['impacted_decoys_avg'] = total_impacted_decoys / self.args.eval_episodes
+        info['delay_avg'] = total_steps_delayed / self.args.eval_episodes
         return (episodic_return, info)
     
     def run_evals(self, model, globalstep):
@@ -447,6 +449,12 @@ class Trainer:
             self.writer.add_scalar(
                 f"evaluation/first_step_of_decoy_contact_avg",
                 eval_return[1]["first_step_of_decoy_contact_avg"],
+                eval_step
+            )
+
+            self.writer.add_scalar(
+                f"evaluation/steps_delayed_avg",
+                eval_return[1]["delay_avg"],
                 eval_step
             )
 
