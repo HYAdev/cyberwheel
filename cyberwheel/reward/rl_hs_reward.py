@@ -16,53 +16,12 @@ class RLRewardAsymmetric(Reward):
         self.args = args
 
     def _DELAY(self, decoy): # NOTE: I implemented the delay to give a flat reward for every step that the red agent attacked a decoy.
-        return 5.0 if decoy else 0
+        #if decoy:
+        #    print('happening')
+        return 40.0 if decoy else 0
     
-    def _DOWNTIME(self, blue_action, headstart, post_play, exceeded_decoy_limit, blue_success):
-        if blue_success:
-            if exceeded_decoy_limit:
-                b = self.blue_rewards[blue_action][0] * 3
-            elif headstart:
-                b = (self.blue_rewards[blue_action][0] * -3) if (blue_action == "deploy_decoy") else self.blue_rewards[blue_action][0] #changed
-            else: # after headstart
-                if post_play: # after headstart actions are allowed
-                    b = self.blue_rewards[blue_action][0]
-                else:
-                    b = self.blue_rewards[blue_action][0] * 60
-        else:
-            b = 0
-
-        return b
-    def _DETECT(self, blue_action, headstart, post_play, exceeded_decoy_limit, blue_success):
-        if blue_success:
-            if exceeded_decoy_limit:
-                b = self.blue_rewards[blue_action][0] * 3
-            elif headstart:
-                b = (self.blue_rewards[blue_action][0] * -3) if (blue_action == "deploy_decoy") else self.blue_rewards[blue_action][0] #changed
-            else: # after headstart
-                if post_play: # after headstart actions are allowed
-                    b = self.blue_rewards[blue_action][0]
-                else:
-                    b = self.blue_rewards[blue_action][0] * 60
-        else:
-            b = 0
-
-        return b
-    def _GENERAL(self, blue_action, headstart, post_play, exceeded_decoy_limit, blue_success):
-        if blue_success:
-            if exceeded_decoy_limit:
-                b = self.blue_rewards[blue_action][0] * 3
-            elif headstart:
-                b = (self.blue_rewards[blue_action][0] * -3) if (blue_action == "deploy_decoy") else self.blue_rewards[blue_action][0] #changed
-            else: # after headstart
-                if post_play: # after headstart actions are allowed
-                    b = self.blue_rewards[blue_action][0]
-                else:
-                    b = self.blue_rewards[blue_action][0] * 60
-        else:
-            b = 0
-
-        return b
+    def _GENERAL(self, decoy=False):
+        return 0
 
     def calculate_reward(
         self,
@@ -113,20 +72,22 @@ class RLRewardAsymmetric(Reward):
         #else:
         #    multiplier = 0
 
-        if blue_success:
-            if exceeded_decoy_limit:
+        if blue_success and blue_action == "deploy_decoy":
+            if exceeded_decoy_limit: # deployed decoy after limit
                 multiplier = 3
             elif headstart:
-                multiplier = -3 if (blue_action == "deploy_decoy") else 1 #changed
+                multiplier = -3 # deployed decoy in proper range
             else: # after headstart
                 if post_play: # after headstart actions are allowed
-                    multiplier = 1
+                    multiplier = 1 # deployed decoy in proper range, after headstart
                 else:
-                    multiplier = 60
-        else:
-            multiplier = 0
+                    multiplier = 60 # deployed decoy after headstart when not allowed
+        else: # if not deploying decoy, same reward
+            multiplier = 1
 
         b = self.blue_rewards[blue_action][0] * multiplier
+
+        #print(b)
         #if blue_success:
         #    if exceeded_decoy_limit:
         #        b = self.blue_rewards[blue_action][0] * 3
@@ -142,14 +103,14 @@ class RLRewardAsymmetric(Reward):
 
         action_dict = {
             "delay": self._DELAY,
-            "downtime": self._DOWNTIME,
-            "detect": self._DETECT,
             "general": self._GENERAL
         }
 
         if objective in action_dict:
             #b = action_dict[objective](blue_action, headstart, post_play, exceeded_decoy_limit, blue_success)
             b += action_dict[objective](decoy) # currently only working with the DELAY reward
+        #print(b)
+        #print("----------------")
         
         if r_recurring != 0:
             self.add_recurring_red_action('0', red_action, decoy)

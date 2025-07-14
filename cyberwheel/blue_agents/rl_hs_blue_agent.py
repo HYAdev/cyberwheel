@@ -74,7 +74,7 @@ class RLBlueAgentAsymmetric(BlueAgent):
         self.network = network
 
         # [ | | headstart, num_decoys, current_timestep]
-        self.observation = BlueObservationAsymmetric(2 * len(self.network.hosts) + 3, host_to_index_mapping(self.network, self.args.deterministic), args.detector_config)
+        self.observation = BlueObservationAsymmetric(2 * len(self.network.hosts), host_to_index_mapping(self.network, self.args.deterministic), args.detector_config)
         self.configs: Dict[str, Any] = {}
         self.action_space: ActionSpace = None
         

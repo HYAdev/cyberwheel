@@ -75,7 +75,12 @@ class CyberwheelHS(gym.Env, Cyberwheel):
             self.rl_agent = self.blue_agent
             self.static_agent = self.red_agent
 
-            self.observation_space = spaces.MultiBinary(self.blue_agent.observation.shape)
+            #self.observation_space = spaces.MultiBinary(self.blue_agent.observation.shape)
+            self.observation_space = spaces.Box(
+                low  = np.full(self.blue_agent.observation.shape, -1, dtype=np.int32),
+                high = np.full(self.blue_agent.observation.shape, args.decoy_limit + 2, dtype=np.int32),
+                dtype=np.int32
+            )
 
             self.max_action_space_size = len(self.network.subnets) * 2
             self.action_space = self.blue_agent.create_action_space(self.max_action_space_size)
@@ -117,6 +122,8 @@ class CyberwheelHS(gym.Env, Cyberwheel):
             blue_recurring=blue_agent_result.recurring,
             headstart=in_headstart
         )
+
+        #print(reward)
 
         self.total += reward
 

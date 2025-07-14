@@ -10,24 +10,27 @@ from cyberwheel.detectors.handler import DetectorHandler
 
 class BlueObservation(Observation):
     def __init__(self, shape: int, mapping: Dict[Host, int], detector_config: str) -> None:
-        self.shape = shape
+        self.shape = shape + 3
         self.mapping = mapping
-        self.obs_vec = np.zeros(shape)
+        self.obs_vec = np.zeros(self.shape)
+        self.len_obs = shape
         self.detector = DetectorHandler(files("cyberwheel.data.configs.detector").joinpath(detector_config))
 
-    def create_obs_vector(self, alerts: Iterable[Alert]) -> Iterable:
+    def create_obs_vector(self, alerts: Iterable[Alert], num_decoys: int, current_timestep: int) -> Iterable:
         # Refresh the non-history portion of the obs_vec
-        obs_length = len(self.obs_vec)
-        barrier = obs_length // 2
+        barrier = self.len_obs // 2
         for i in range(barrier):
             self.obs_vec[i] = 0
         for alert in alerts:
             alerted_host = alert.src_host
-            if alerted_host.name not in self.mapping:
+            if not alerted_host or alerted_host.name not in self.mapping:
                 continue
             index = self.mapping[alerted_host.name]
             self.obs_vec[index] = 1
             self.obs_vec[index + barrier] = 1
+        self.obs_vec[-3] = 0
+        self.obs_vec[-2] = num_decoys # changed
+        self.obs_vec[-1] = current_timestep # changed
         return self.obs_vec
 
     def reset(self) -> Iterable:

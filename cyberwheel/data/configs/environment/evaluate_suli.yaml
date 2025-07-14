@@ -1,0 +1,33 @@
+# Evaluation Parameters
+red_agent: art_agent.yaml
+blue_agent: rl_blue_agent.yaml
+environment: CyberwheelHS
+valid_targets: all
+train_red: false
+train_blue: true
+campaign: false
+seed: 1
+deterministic: false
+
+# Asymmetric
+headstart: 10 # CHANGE THIS
+after_headstart_blue_active: true # CHANGE THIS
+decoy_limit: 5 # CHANGE THIS
+objective: delay
+
+checkpoint: agent
+download_model: true
+run: zzuf6wcu # required if download_model is true
+wandb_project_name: Cyberwheel # required if download_model is true
+wandb_entity: oeschsec # required if download_model is true
+
+experiment_name: TestEvalSULIPostplay # CHANGE THIS
+visualize: false
+graph_name: TestEvalSULIPostplay # CHANGE THIS
+network_config: 15-host-network.yaml
+decoy_config: decoy_hosts.yaml
+host_config: host_defs_services.yaml
+detector_config: detector_handler.yaml
+reward_function: RLRewardAsymmetric
+num_steps: 100
+num_episodes: 10
