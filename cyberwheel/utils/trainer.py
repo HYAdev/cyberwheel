@@ -40,6 +40,7 @@ class Trainer:
         action_masks = torch.zeros(self.max_action_space_size, dtype=torch.bool).to(eval_device)
         total_reward = 0
 
+        # Metrics for SULI
         total_impact_timestep = 0
         total_first_step_of_decoy_contact = 0
         total_impacted_decoys = 0
@@ -62,6 +63,7 @@ class Trainer:
                 #print(f"Evaluation step took: \t\t{time.time() - eval_step_start_time}")
                 total_reward += rew
 
+                # Metrics for SULI
                 if info["decoy_attacked"]:
                     total_steps_delayed += 1
                 if (info["red_action"] == "impact"):
@@ -72,15 +74,18 @@ class Trainer:
                 if done:
                     break
 
-            total_impacted_decoys += info["impacted_decoys"]
+            total_impacted_decoys += info["impacted_decoys"] # metric for SULI
             episode_rewards.append(total_reward)
             total_reward = 0
 
         episodic_return = float(sum(episode_rewards)) / self.args.eval_episodes
+        
+        # Metrics for SULI
         info['impact_timestep_avg'] = total_impact_timestep / self.args.eval_episodes
         info['first_step_of_decoy_contact_avg'] = total_first_step_of_decoy_contact / self.args.eval_episodes
         info['impacted_decoys_avg'] = total_impacted_decoys / self.args.eval_episodes
         info['delay_avg'] = total_steps_delayed / self.args.eval_episodes
+
         return (episodic_return, info)
     
     def run_evals(self, model, globalstep):
@@ -429,7 +434,7 @@ class Trainer:
                 "charts/eval_time", int(time.time() - start_eval), self.global_step
             )
 
-            # ADDITIONS
+            # Metrics for SULI
 
             # Average Steps Till Impact
             self.writer.add_scalar(
@@ -452,6 +457,7 @@ class Trainer:
                 eval_step
             )
 
+            # Average steps delayed (when attacker targets a decoy)
             self.writer.add_scalar(
                 f"evaluation/steps_delayed_avg",
                 eval_return[1]["delay_avg"],

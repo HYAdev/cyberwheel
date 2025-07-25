@@ -5,17 +5,12 @@ from importlib.resources import files
 
 from cyberwheel.detectors.alert import Alert
 from cyberwheel.network.host import Host
-from cyberwheel.observation.observation import Observation
+from cyberwheel.observation.blue_observation import BlueObservation
 from cyberwheel.detectors.handler import DetectorHandler
 
-class BlueObservationAsymmetric(Observation):
+class BlueObservationAsymmetric(BlueObservation):
     def __init__(self, shape: int, mapping: Dict[Host, int], detector_config: str) -> None:
-        self.offset = 2
-        self.shape = shape + self.offset
-        self.mapping = mapping
-        self.obs_vec = np.zeros(self.shape)
-        self.len_obs = shape
-        self.detector = DetectorHandler(files("cyberwheel.data.configs.detector").joinpath(detector_config))
+        super().__init__(shape, mapping, detector_config)
 
     def create_obs_vector(self, alerts: Iterable[Alert], headstart: bool, num_decoys: int) -> Iterable:
         # Refresh the non-history portion of the obs_vec
@@ -25,10 +20,10 @@ class BlueObservationAsymmetric(Observation):
                 self.obs_vec[i] = 0
             self.obs_vec[-self.offset] = 1
             self.obs_vec[-self.offset + 1] = num_decoys
-            #self.obs_vec[-1] = current_timestep
             return self.obs_vec
 
         barrier = self.len_obs // 2
+
         for i in range(barrier):
             self.obs_vec[i] = 0
         for alert in alerts:
@@ -40,10 +35,4 @@ class BlueObservationAsymmetric(Observation):
             self.obs_vec[index + barrier] = 1
         self.obs_vec[-self.offset] = 0
         self.obs_vec[-self.offset + 1] = num_decoys # changed
-        #self.obs_vec[-1] = current_timestep # changed
-        return self.obs_vec
-
-    def reset(self) -> Iterable:
-        self.obs_vec = np.zeros(self.shape, dtype=np.int64)
-        self.detector.reset()
         return self.obs_vec

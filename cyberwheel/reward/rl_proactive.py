@@ -1,8 +1,9 @@
 from cyberwheel.network.network_base import Host, Network
 from cyberwheel.reward.reward_base import Reward, RewardMap, RecurringAction
+from cyberwheel.reward.rl_reward import RLReward
 from cyberwheel.utils.hybrid_set_list import HybridSetList
 
-class RLRewardAsymmetric(Reward):
+class RLRewardProactive(RLReward):
     def __init__(
         self,
         red_rewards: RewardMap,
@@ -10,9 +11,7 @@ class RLRewardAsymmetric(Reward):
         args,
         network: Network
     ) -> None:
-        super().__init__(red_rewards, blue_rewards)
-        self.valid_targets = args.valid_targets
-        self.network = network
+        super().__init__(red_rewards, blue_rewards, args.valid_targets, network)
         self.args = args
 
     def _DELAY(self, decoy): # NOTE: I implemented the delay to give a flat reward for every step that the red agent attacked a decoy.
@@ -37,7 +36,7 @@ class RLRewardAsymmetric(Reward):
     ) -> int | float:
 
         objective = self.args.objective
-        post_play = self.args.after_headstart_blue_active
+        post_play = self.args.post_play
         exceeded_decoy_limit = self.network.get_num_decoys() >= self.args.decoy_limit
         
         if self.valid_targets == "servers":
@@ -94,27 +93,3 @@ class RLRewardAsymmetric(Reward):
             self.add_recurring_blue_action(blue_id, blue_action)
 
         return r + b + self.sum_recurring()
-    
-    def sum_recurring(self) -> int | float:
-        sum = 0
-        for ra in self.blue_recurring_actions:
-            sum += self.blue_rewards[ra.action][1]
-        for ra in self.red_recurring_actions:
-            sum += self.red_rewards[ra[0].action][1]
-        return sum
-
-    def add_recurring_blue_action(self, id: str, action: str) -> None:
-        self.blue_recurring_actions.append(RecurringAction(id, action))
-
-    def remove_recurring_blue_action(self, id: str) -> None:
-        for i in range(len(self.blue_recurring_actions)):
-            if self.blue_recurring_actions[i].id == id:
-                self.blue_recurring_actions.pop(i)
-                break
-
-    def add_recurring_red_action(self, id: str, red_action: str, is_decoy: bool) -> None:
-        self.red_recurring_actions.append((RecurringAction(id, red_action), is_decoy))
-
-    def reset(self) -> None:
-        self.blue_recurring_actions = []
-        self.red_recurring_actions = []

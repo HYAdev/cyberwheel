@@ -21,13 +21,13 @@ run: # required if download_model is true
 wandb_project_name: # required if download_model is true
 wandb_entity: # required if download_model is true
 
-experiment_name: "SULI_July13_10headstart_5decoys_postplay_delay_50M_decoydetector" # CHANGE THIS
+experiment_name: "NEW_SULI_July14_15hostnetwork_10headstart_5decoys_NOpostplay_delay_100M_decoydetector" # CHANGE THIS
 visualize: true
-graph_name: SULI_July13_10headstart_5decoys_postplay_delay_50M_decoydetector # CHANGE THIS
+graph_name: NEW_SULI_July14_15hostnetwork_10headstart_5decoys_NOpostplay_delay_100M_decoydetector # CHANGE THIS
 network_config: 15-host-network.yaml
 decoy_config: decoy_hosts.yaml
 host_config: host_defs_services.yaml
 detector_config: detector_handler.yaml
 reward_function: RLRewardAsymmetric
 num_steps: 100
-num_episodes: 10
+num_episodes: 50

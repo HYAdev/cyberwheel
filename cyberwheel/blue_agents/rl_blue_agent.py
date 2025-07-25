@@ -10,7 +10,7 @@ from cyberwheel.blue_agents.blue_agent import BlueAgent, BlueAgentResult
 from cyberwheel.reward.reward_base import RewardMap
 from cyberwheel.network.network_base import Network, Host
 from cyberwheel.blue_agents.action_space.action_space import ActionSpace
-from cyberwheel.observation import BlueObservation
+from cyberwheel.observation import BlueObservation, BlueObservationAsymmetric
 
 
 def host_to_index_mapping(network: Network, deterministic: bool = False) -> Dict[Host, int]:
@@ -73,7 +73,11 @@ class RLBlueAgent(BlueAgent):
         self.config = files("cyberwheel.data.configs.blue_agent").joinpath(args.blue_agent)
         self.network = network
 
-        self.observation = BlueObservation(2 * len(self.network.hosts), host_to_index_mapping(self.network, self.args.deterministic), args.detector_config)
+        if type(self) in RLBlueAgent.__subclasses__():
+            self.observation = BlueObservationAsymmetric(2 * len(self.network.hosts), host_to_index_mapping(self.network, self.args.deterministic), args.detector_config)
+        else:
+            self.observation = BlueObservation(2 * len(self.network.hosts), host_to_index_mapping(self.network, self.args.deterministic), args.detector_config)
+
         self.configs: Dict[str, Any] = {}
         self.action_space: ActionSpace = None
         

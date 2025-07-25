@@ -3,4 +3,4 @@
 
 from .rl_blue_agent import RLBlueAgent
 from .inactive_blue_agent import InactiveBlueAgent
-from .rl_hs_blue_agent import RLBlueAgentAsymmetric
+from .rl_proactive_blue_agent import RLBlueAgentProactive

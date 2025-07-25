@@ -6,14 +6,13 @@ from typing import Iterable, Any
 from gymnasium import spaces
 
 from cyberwheel.cyberwheel_envs.cyberwheel import Cyberwheel
-from cyberwheel.blue_agents import RLBlueAgent, InactiveBlueAgent
+from cyberwheel.blue_agents import RLBlueAgent, InactiveBlueAgent, RLBlueAgentProactive
 from cyberwheel.network.network_base import Network
 from cyberwheel.red_agents import RLRedAgent, ARTAgent, ARTCampaign
 from cyberwheel.utils import YAMLConfig, HybridSetList
 from cyberwheel.utils.set_seed import set_seed
 
 import pandas as pd
-
 
 class CyberwheelRL(gym.Env, Cyberwheel):
     metadata = {"render.modes": ["human"]}
@@ -67,9 +66,14 @@ class CyberwheelRL(gym.Env, Cyberwheel):
             self.reward_sign = -1
         else:
             self.red_agent = ARTCampaign(self.network, args) if args.campaign else ARTAgent(self.network, args)
-            self.blue_agent = RLBlueAgent(self.network, args)
+
+            if type(self) in CyberwheelRL.__subclasses__():
+                self.blue_agent = RLBlueAgentProactive(self.network, args)
+            else:
+                self.blue_agent = RLBlueAgent(self.network, args)
+
             self.rl_agent = self.blue_agent
-            self.static_agent = self.red_agent
+            self.static_agent = self.red_agent 
 
             self.observation_space = spaces.Box(
                 low  = np.full(self.blue_agent.observation.shape, -1, dtype=np.int32),
@@ -109,7 +113,8 @@ class CyberwheelRL(gym.Env, Cyberwheel):
 
         self.total += reward
 
-        done = self.current_step >= self.max_steps
+        # done = self.current_step >= self.max_steps
+        done = red_agent_result.action.get_name() == "impact"
 
         self.current_step += 1
         info = {}
