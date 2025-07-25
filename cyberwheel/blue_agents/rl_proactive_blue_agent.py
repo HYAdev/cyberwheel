@@ -14,17 +14,13 @@ from cyberwheel.blue_agents.action_space.action_space import ActionSpace
 
 class RLBlueAgentProactive(RLBlueAgent):
     """
-    The purpose of this blue agent is to prevent having to create new blue agents everytime a new 
-    blue action is introduced. The idea is to have a config file specify what blue actions this instance
-    has and import them dynamically.
+    This proactive blue agent deploys a set amount of decoys before the simulated cyber attack occurs.
 
-    Actions need to be very standardized. Each one will need to have the following associated with it:
-    - An action name: The name of the action performed. If you have two deploy actions, then the names would
-    be something like: decoy0 and decoy1. Used by the reward calculator to determine reward.
-    - A unique ID: Recurring rewards need an ID to identify them from other recurring actions. A UUID should
-    be sufficient for this. If an action has no recurring cost (i.e. 0) then the ID can be "".
+    The observation space includes two more additional attributes:
+    1. The number of decoys currently deployed.
+    2. If the agent is in the headstart phase or not.
 
-    This agent should also keep track of blue action config files. The config for decoys is an example.
+    We pass these additional attributes to BlueObservationProactive, where it appends to the end of the observation space.
     """
     def __init__(self, network: Network, args) -> None:
         super().__init__(network, args)

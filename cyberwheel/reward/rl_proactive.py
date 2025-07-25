@@ -4,6 +4,10 @@ from cyberwheel.reward.rl_reward import RLReward
 from cyberwheel.utils.hybrid_set_list import HybridSetList
 
 class RLRewardProactive(RLReward):
+    """
+    The proactive RL blue agent is rewarded for every timestep where the attacker targets one of its decoys.
+    """
+
     def __init__(
         self,
         red_rewards: RewardMap,
@@ -14,9 +18,7 @@ class RLRewardProactive(RLReward):
         super().__init__(red_rewards, blue_rewards, args.valid_targets, network)
         self.args = args
 
-    def _DELAY(self, decoy): # NOTE: I implemented the delay to give a flat reward for every step that the red agent attacked a decoy.
-        #if decoy:
-        #    print('happening')
+    def _DELAY(self, decoy):
         return 40.0 if decoy else 0
     
     def _GENERAL(self, decoy=False):

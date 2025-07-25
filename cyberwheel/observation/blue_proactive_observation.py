@@ -8,7 +8,17 @@ from cyberwheel.network.host import Host
 from cyberwheel.observation.blue_observation import BlueObservation
 from cyberwheel.detectors.handler import DetectorHandler
 
-class BlueObservationAsymmetric(BlueObservation):
+class BlueObservationProactive(BlueObservation):
+    """
+    This proactive blue agent deploys a set amount of decoys before the simulated cyber attack occurs.
+
+    The observation space includes two more additional attributes:
+    1. The number of decoys currently deployed.
+    2. If the agent is in the headstart phase or not.
+
+    We pass these additional attributes to BlueObservationProactive, where it appends to the end of the observation space.
+    """
+
     def __init__(self, shape: int, mapping: Dict[Host, int], detector_config: str) -> None:
         super().__init__(shape, mapping, detector_config)
 

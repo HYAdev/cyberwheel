@@ -4,11 +4,9 @@ from cyberwheel.network.network_base import Network
 
 def make_env(env_func, args, networks, rank, evaluation: bool = False):
     """
-    Utility function for multiprocessed env.
+    This function was isolated from trainer.py due to issues pertaining to pickling the asynchronous environments.
 
-    :param env_id: the environment ID
-    :param num_env: the number of environments you wish to have in subprocesses
-    :param rank: index of the subprocess
+    Specifically, the parameters passed in cannot be tied to an object.
     """
 
     def _init():
